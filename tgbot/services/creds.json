@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "technolightevents",
+  "private_key_id": "874d0aceafd0d8daab8453102ba74e72b16a7f13",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDuVytcieH+j++G\nznUfi6xbTdP52cGQv+rVy6j3w0PLSGtFVwj5HxrWhU2BkOaqwrAZPJ0TZA6yVs4d\nevf5WaTifHWJEbabX7qd0EgCguNOQZ4UNh6hmJrKy/U4+bQFobJQC5CVHGM6y3fD\njq0iYPWtHqL9Oc0PCp+ttwjG54Dm8TWKzgXMhqSD+VU7nvlZv/mD+pyV16hAAtNt\nYOSpuFYrCGSI1+NrtnD2MUoBbC0e5fBO50/jFVSpyz9SQLZYzGnKDOjwm1ZeKrTa\nZ2W83da5pUBeTaslWDkXoeAUN5WaEcT12lT2dLNdqw2X0iaBmrXoQA2Qxjx+laO/\nY//SOhcvAgMBAAECggEAKNPo2yTJgFxyuSKDwMAh6dAWuE2bkWq21SHak3qxEdEZ\ngxrKMDaqV8YlBUVnpifMl74g4DH7LISfMUCf2uiGzL9qOO0+XTZUVvVXaIq4Wm72\nH9s3exITrhqrKrPnqTFORNT+UvS2cNtq7CZ0NRfr7dh6LiupG2MEAHOCvuPoWmbx\n04jJ9LRFRKM+kNaAj0fF9PHUbX+BBVRs78KGqSsgUkqOMe5KCK2cdH1PijE8uRfs\nwrHLiVQPeuceFGtxlSVP4x/P8v/JV6SR5Libjg//t0Vy+R1XAjaS4ylDGYxnUaan\nDKfYSGagkE3xFdF8VN0XtDbBR3Qwyh3UseKQHmBERQKBgQD7XRXrKgqlXGagnxpQ\n5mDglmvBEIT04JIh72yJhguV1b/imwx/8j7bnaHFiy51Z0iJtO4N4q6cXnCHyWNj\nwJxwDtR5yYf99m2AvjCkD4u5+fzes+GrdkfvZVI5UN9PZ+B+4QgDIKeET5fgx5k/\n+EIAKDkWnluFBTDrrJN2A2J7VQKBgQDyvJcET3+WvanSxEkQcCvjLQYwgx/E8ktB\nfWtj9bJw4Jc5de4M23jPzLPdc4VsmJOKr04F/f5JITBlBTuLnKABv4OpBSCtaskJ\nnwknwGrNQxGZ63MNtONRVIqAIJwa9cDWiz2tsTRVuCcBQ8abh2MeOjI73WScfbNT\ncCdQ1enwcwKBgQCg1O2qW2sWZSnxSfvfmZiQ+w4VKQm5WVuHRReQYulUxMCTMJvt\n3cUkZhbVO/nM+vnpyo+q6MjKmo6sA0qJz/sIpCSFjFJsR9nGz2p1/tBrfa2znSse\nt37NiWnz7HAF8bQt2rRys9kbioXmODAxQxqP2Sy18TsjwK+NjA2KLB4+RQKBgQC1\noKOnWAzyMCy4RqMdJ7HPJMty1UqaRWpGMKCAhUHl8Ed3eWSMPlShuFwFogD+BxSv\nOwk4tprlAW6CyG2Lw8B+Tl0nxWx0FmkjR9rD4diIilzLPUAzy1wkaQvRX5UvHyAR\n6NJX+zZbxZV5/srHaYCjB4y6+qfj6LKcBlmExOttPQKBgQCWDy0cfPHIWbL8MlGv\nolht0hhEZfDRA8sctMXMAAldwP36izKdHETXegJbp7m71/G097WHALYln6FYYjH1\n8rew3v+gusV7C4dU3D2EyHKOIskrA+d58WuKfGl3DLMVM2rclJ7gDzynwfsZMftb\nygNgsT5RYXvb3Qok91eUWvIzwQ==\n-----END PRIVATE KEY-----\n",
+  "client_email": "technolightaccount@technolightevents.iam.gserviceaccount.com",
+  "client_id": "114697444301999137561",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/technolightaccount%40technolightevents.iam.gserviceaccount.com"
+}
