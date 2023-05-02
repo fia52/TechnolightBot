@@ -95,10 +95,17 @@ ok_keyboard = InlineKeyboardMarkup(
     ],
 )
 
-go_back_keyboard = InlineKeyboardMarkup(
+go_back_to_acquaintance_menu_keyboard = InlineKeyboardMarkup(
     row_width=2,
     inline_keyboard=[
         [InlineKeyboardButton(text="Назад", callback_data="acquaintance")],
+    ],
+)
+
+go_back_to_main_menu_keyboard = InlineKeyboardMarkup(
+    row_width=2,
+    inline_keyboard=[
+        [InlineKeyboardButton(text="Назад", callback_data="main_menu")],
     ],
 )
 

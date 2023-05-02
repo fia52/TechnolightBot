@@ -1,5 +1,5 @@
 from aiogram.types import Message, CallbackQuery
-from aiogram.utils.exceptions import MessageCantBeEdited, MessageToDeleteNotFound
+from aiogram.utils.exceptions import MessageCantBeEdited, MessageToDeleteNotFound, BadRequest
 
 from loader import db
 from tgbot.keyboards.inline import main_menu_keyboard
@@ -7,6 +7,7 @@ from tgbot.keyboards.inline import main_menu_keyboard
 
 async def show_main_menu(message, method: str = "try_to_edit_previous_message"):
     if isinstance(message, CallbackQuery):
+        await message.answer()
         data = await db.get_user_by_telegram_id(str(message.from_user.id))
         message_convert = message.message
     else:
@@ -39,7 +40,7 @@ async def show_main_menu(message, method: str = "try_to_edit_previous_message"):
         )
         await message_convert.edit_reply_markup(reply_markup=main_menu_keyboard)
 
-    except MessageCantBeEdited:
+    except (MessageCantBeEdited, BadRequest,):
         await message_convert.answer(
             text=f"""
                 ФИО: {data.get("fio")}
@@ -50,7 +51,10 @@ async def show_main_menu(message, method: str = "try_to_edit_previous_message"):
                 """,
             reply_markup=main_menu_keyboard,
         )
-        await message.bot.delete_message(chat_id=message_convert.from_user.id, message_id=message.message_id)
+        try:
+            await message.bot.delete_message(chat_id=message_convert.from_user.id, message_id=message.message_id)
+        except AttributeError:
+            await message.bot.delete_message(chat_id=message.from_user.id, message_id=message_convert.message_id)
 
 
 async def del_reg_messages(message_ids: list, callback: CallbackQuery):

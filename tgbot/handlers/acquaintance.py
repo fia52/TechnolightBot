@@ -5,7 +5,7 @@ from aiogram.types import CallbackQuery, Message
 
 from loader import db
 from tgbot.keyboards.callback_datas import pagination_call
-from tgbot.keyboards.inline import acquaintance_keyboard, get_users_keyboard, go_back_keyboard
+from tgbot.keyboards.inline import acquaintance_keyboard, get_users_keyboard, go_back_to_acquaintance_menu_keyboard
 
 
 class SearchByCodeFSM(StatesGroup):
@@ -34,7 +34,7 @@ async def acquaintance_menu_show(callback: CallbackQuery, state: FSMContext):
 async def enter_code_dialog(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
-    message_ = await callback.message.edit_text(text="Укажите код", reply_markup=go_back_keyboard)
+    message_ = await callback.message.edit_text(text="Укажите код", reply_markup=go_back_to_acquaintance_menu_keyboard)
 
     async with state.proxy() as data:
         data["message_for_redact_id"] = message_.message_id
@@ -62,7 +62,7 @@ async def show_user_info_by_code(message: Message, state: FSMContext):
         await message.bot.edit_message_reply_markup(
             chat_id=message.from_user.id,
             message_id=message_for_redact_id,
-            reply_markup=go_back_keyboard
+            reply_markup=go_back_to_acquaintance_menu_keyboard
         )
         await db.add_to_search_history(telegram_id=str(message.from_user.id), code=code)
 
@@ -75,7 +75,7 @@ async def show_user_info_by_code(message: Message, state: FSMContext):
         await message.bot.edit_message_reply_markup(
             chat_id=message.from_user.id,
             message_id=message_for_redact_id,
-            reply_markup=go_back_keyboard
+            reply_markup=go_back_to_acquaintance_menu_keyboard
         )
 
     await message.delete()
