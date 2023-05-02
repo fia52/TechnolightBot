@@ -5,7 +5,7 @@ from aiogram.types import CallbackQuery, Message
 
 from loader import db
 from tgbot.keyboards.callback_datas import pagination_call
-from tgbot.keyboards.inline import acquaintance_keyboard, get_users_keyboard
+from tgbot.keyboards.inline import acquaintance_keyboard, get_users_keyboard, go_back_keyboard
 
 
 class SearchByCodeFSM(StatesGroup):
@@ -16,20 +16,28 @@ class SearchByCodeFSM(StatesGroup):
 async def acquaintance_menu_show(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
+    data = await db.get_user_by_telegram_id(str(callback.from_user.id))
+    await callback.message.edit_text(
+        text=f"""
+                ФИО: {data.get("fio")}
+Номер телефона: {data.get("phone_number")} 
+Должность: {data.get("position")}
+
+Ваш уникальный код: {data.get("unique_code")}            
+        """,
+    )
+
     await callback.message.edit_reply_markup(reply_markup=acquaintance_keyboard)
     await SearchByCodeFSM.waiting_for_enter_code_button.set()
-
-    async with state.proxy() as data:
-        data["message_for_redact_id"] = callback.message.message_id
 
 
 async def enter_code_dialog(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
-    message_ = await callback.message.answer(text="Укажите код")
+    message_ = await callback.message.edit_text(text="Укажите код", reply_markup=go_back_keyboard)
 
     async with state.proxy() as data:
-        data["message_for_delete_id"] = message_.message_id
+        data["message_for_redact_id"] = message_.message_id
     await SearchByCodeFSM.waiting_for_code.set()
 
 
@@ -37,7 +45,6 @@ async def show_user_info_by_code(message: Message, state: FSMContext):
     code = message.text
     async with state.proxy() as data:
         message_for_redact_id = data["message_for_redact_id"]
-        message_for_delete_id = data["message_for_delete_id"]
 
     user_info = await db.get_user_by_code(code)
     if user_info:
@@ -55,7 +62,7 @@ async def show_user_info_by_code(message: Message, state: FSMContext):
         await message.bot.edit_message_reply_markup(
             chat_id=message.from_user.id,
             message_id=message_for_redact_id,
-            reply_markup=acquaintance_keyboard
+            reply_markup=go_back_keyboard
         )
         await db.add_to_search_history(telegram_id=str(message.from_user.id), code=code)
 
@@ -68,12 +75,9 @@ async def show_user_info_by_code(message: Message, state: FSMContext):
         await message.bot.edit_message_reply_markup(
             chat_id=message.from_user.id,
             message_id=message_for_redact_id,
-            reply_markup=acquaintance_keyboard
+            reply_markup=go_back_keyboard
         )
 
-    await message.bot.delete_message(
-        chat_id=message.from_user.id, message_id=message_for_delete_id
-    )
     await message.delete()
     await SearchByCodeFSM.waiting_for_enter_code_button.set()
 

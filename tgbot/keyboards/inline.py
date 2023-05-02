@@ -95,6 +95,13 @@ ok_keyboard = InlineKeyboardMarkup(
     ],
 )
 
+go_back_keyboard = InlineKeyboardMarkup(
+    row_width=2,
+    inline_keyboard=[
+        [InlineKeyboardButton(text="Назад", callback_data="acquaintance")],
+    ],
+)
+
 
 async def get_users_keyboard(
     user_codes: list,
