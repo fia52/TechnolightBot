@@ -86,6 +86,15 @@ confirm_record_keyboard = InlineKeyboardMarkup(
     ],
 )
 
+ok_keyboard = InlineKeyboardMarkup(
+    row_width=2,
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Окей", callback_data="ok"),
+        ]
+    ],
+)
+
 
 async def get_users_keyboard(
     user_codes: list,

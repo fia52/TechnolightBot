@@ -2,7 +2,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import CallbackQuery
-from aiogram.utils.exceptions import MessageToDeleteNotFound
+from aiogram.utils.exceptions import MessageToDeleteNotFound, BadRequest
 
 from tgbot.data.events_info_dict import events_info_dict
 from tgbot.keyboards.callback_datas import event_call
@@ -12,6 +12,7 @@ from tgbot.keyboards.inline import (
     confirm_record_keyboard,
 )
 from loader import googledocred, db
+from tgbot.misc.help_funcs import show_main_menu
 
 
 class EventRecordFSM(StatesGroup):
@@ -35,12 +36,16 @@ async def schedule_show(callback: CallbackQuery, state: FSMContext):
                 pass
         await state.finish()
 
-    message = await callback.message.answer(
-        text="Информация по событиям:", reply_markup=schedule_keyboard
-    )
-    await callback.bot.delete_message(
-        chat_id=callback.from_user.id, message_id=callback.message.message_id
-    )
+    try:
+        message = await callback.message.edit_text(text="Информация по событиям:")
+        message = await callback.message.edit_reply_markup(reply_markup=schedule_keyboard)
+    except BadRequest:
+        message = await callback.message.answer(
+            text="Информация по событиям:", reply_markup=schedule_keyboard
+        )
+        await callback.bot.delete_message(
+            chat_id=callback.from_user.id, message_id=callback.message.message_id
+        )
 
     async with state.proxy() as data:
         data["message_for_redact_id"] = message.message_id
@@ -114,7 +119,7 @@ async def obtain_record_confirm(callback: CallbackQuery, state: FSMContext):
                 event_name=data["event_name"],
             )
 
-        await schedule_show(callback, state)
+        await show_main_menu(message=callback, method="delete_previous_message")
 
 
 def register_schedule_handlers(dp: Dispatcher):

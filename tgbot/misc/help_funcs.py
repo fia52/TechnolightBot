@@ -5,15 +5,30 @@ from loader import db
 from tgbot.keyboards.inline import main_menu_keyboard
 
 
-async def show_main_menu(message):
+async def show_main_menu(message, method: str = "try_to_edit_previous_message"):
     if isinstance(message, CallbackQuery):
         data = await db.get_user_by_telegram_id(str(message.from_user.id))
-        message = message.message
+        message_convert = message.message
     else:
+        message_convert = message
         data = await db.get_user_by_telegram_id(str(message.from_user.id))
 
+    if method == "delete_previous_message":
+        await message_convert.answer(
+            text=f"""
+                ФИО: {data.get("fio")}
+Номер телефона: {data.get("phone_number")} 
+Должность: {data.get("position")}
+
+Ваш уникальный код: {data.get("unique_code")}            
+            """,
+            reply_markup=main_menu_keyboard,
+        )
+        await message.bot.delete_message(chat_id=message.from_user.id, message_id=message_convert.message_id)
+        return
+
     try:
-        await message.edit_text(
+        await message_convert.edit_text(
             text=f"""
                 ФИО: {data.get("fio")}
 Номер телефона: {data.get("phone_number")} 
@@ -22,10 +37,10 @@ async def show_main_menu(message):
 Ваш уникальный код: {data.get("unique_code")}            
                 """,
         )
-        await message.edit_reply_markup(reply_markup=main_menu_keyboard)
+        await message_convert.edit_reply_markup(reply_markup=main_menu_keyboard)
 
     except MessageCantBeEdited:
-        await message.answer(
+        await message_convert.answer(
             text=f"""
                 ФИО: {data.get("fio")}
 Номер телефона: {data.get("phone_number")} 
@@ -35,6 +50,7 @@ async def show_main_menu(message):
                 """,
             reply_markup=main_menu_keyboard,
         )
+        await message.bot.delete_message(chat_id=message_convert.from_user.id, message_id=message.message_id)
 
 
 async def del_reg_messages(message_ids: list, callback: CallbackQuery):

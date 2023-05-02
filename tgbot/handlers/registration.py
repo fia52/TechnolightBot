@@ -6,13 +6,14 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove
 
-from tgbot.keyboards.inline import main_menu_keyboard, confirm_keyboard
+from tgbot.keyboards.inline import main_menu_keyboard, confirm_keyboard, ok_keyboard
 from loader import db
 from tgbot.keyboards.reply import share_phone_keyboard
 from tgbot.misc.help_funcs import show_main_menu, del_reg_messages
 
 
 class RegistrationFSM(StatesGroup):
+    waiting_for_ok_button = State()
     waiting_for_fio = State()
     waiting_for_fio_confirm = State()
     waiting_for_phone_number = State()
@@ -24,21 +25,23 @@ async def start_dialog(message: Message, state: FSMContext):
     if await db.get_user_by_telegram_id(str(message.from_user.id)):
         await show_main_menu(message)
     else:
-        await RegistrationFSM.waiting_for_fio.set()
-        m1 = await message.answer("Приветственное сообщение")
-        m2 = await message.answer("Укажите ваше ФИО:")
-
-        async with state.proxy() as data:
-            data["reg_messages_for_delete"] = [
-                m1.message_id,
-                m2.message_id,
-                message.message_id,
-            ]
-
-    if isinstance(message, Message):
+        await message.answer("Приветственное сообщение", reply_markup=ok_keyboard)
         await message.delete()
-    else:
-        await message.answer()
+        await RegistrationFSM.waiting_for_ok_button.set()
+
+
+async def obtain_ok_button(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+
+    m2 = await callback.message.edit_text(text="Укажите ваше ФИО:")
+
+    async with state.proxy() as data:
+        data["reg_messages_for_delete"] = [
+            m2.message_id,
+            callback.message.message_id,
+        ]
+
+    await RegistrationFSM.waiting_for_fio.set()
 
 
 async def obtain_fio(message: Message, state: FSMContext):
@@ -57,10 +60,12 @@ async def obtain_fio_confirm(callback: CallbackQuery, state: FSMContext):
 
     if callback.data == "yes":
         m4 = await callback.message.answer(
-            text="Укажите номер телефона", reply_markup=share_phone_keyboard
+            text="Укажите номер телефона:", reply_markup=share_phone_keyboard
         )
+
         async with state.proxy() as data:
             data["reg_messages_for_delete"].extend([m4.message_id, callback.message.message_id])
+
         await RegistrationFSM.waiting_for_phone_number.set()
 
     else:
@@ -83,14 +88,14 @@ async def obtain_phone_number(message: Message, state: FSMContext):
 
         else:
             m6 = await message.answer(
-                text="Укажите номер телефона", reply_markup=share_phone_keyboard
+                text="Неверный формат номера телефона, попробуйте ещё раз:", reply_markup=share_phone_keyboard
             )
             async with state.proxy() as data:
                 data["reg_messages_for_delete"].extend([m6.message_id, message.message_id])
             return
 
     m7 = await message.answer(
-        text="Укажите вашу должность", reply_markup=ReplyKeyboardRemove()
+        text="Укажите вашу должность:", reply_markup=ReplyKeyboardRemove()
     )
     async with state.proxy() as data:
         data["reg_messages_for_delete"].extend([m7.message_id, message.message_id])
@@ -140,7 +145,7 @@ async def obtain_position_confirm(callback: CallbackQuery, state: FSMContext):
         await state.finish()
 
     else:
-        m9 = await callback.message.answer(text="Укажите вашу должность")
+        m9 = await callback.message.answer(text="Укажите вашу должность:")
         async with state.proxy() as data:
             data["reg_messages_for_delete"].extend([m9.message_id, callback.message.message_id])
         await RegistrationFSM.waiting_for_position.set()
@@ -149,9 +154,14 @@ async def obtain_position_confirm(callback: CallbackQuery, state: FSMContext):
 def register_registration_handlers(dp: Dispatcher):
     dp.register_message_handler(start_dialog, commands=["start"], state="*"),
     dp.register_callback_query_handler(
-        start_dialog,
+        show_main_menu,
         lambda x: x.data and x.data == "main_menu",
         state="*",
+    ),
+    dp.register_callback_query_handler(
+        obtain_ok_button,
+        lambda x: x.data and x.data == "ok",
+        state=RegistrationFSM.waiting_for_ok_button,
     ),
     dp.register_message_handler(
         obtain_fio, content_types=["text"], state=RegistrationFSM.waiting_for_fio
