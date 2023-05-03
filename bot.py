@@ -1,10 +1,6 @@
 import asyncio
 import logging
 
-from aiogram import Bot, Dispatcher
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.contrib.fsm_storage.redis import RedisStorage2
-
 from tgbot.config import load_config
 
 from tgbot.handlers.acquaintance import register_acquaintance_handlers
@@ -37,8 +33,6 @@ async def main():
     )
     logger.info("Starting bot")
     config = load_config(".env")
-
-    storage = RedisStorage2() if config.tg_bot.use_redis else MemoryStorage()
 
     bot['config'] = config
 

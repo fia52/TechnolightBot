@@ -109,7 +109,6 @@ go_back_to_main_menu_keyboard = InlineKeyboardMarkup(
     ],
 )
 
-
 async def get_users_keyboard(
     user_codes: list,
     num: int = 0,
@@ -164,3 +163,10 @@ async def get_users_keyboard(
     )
 
     return user, markup
+
+# share_phone_keyboard = ReplyKeyboardMarkup(
+#     row_width=1, resize_keyboard=True, one_time_keyboard=True
+# )
+# share_phone_keyboard.add(
+#     KeyboardButton(text="Поделиться номером телефона", request_contact=True)
+# )

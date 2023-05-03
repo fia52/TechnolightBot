@@ -1,7 +1,7 @@
 import random
 import re
 
-from aiogram import Dispatcher, Bot
+from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove
@@ -9,7 +9,7 @@ from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove
 from tgbot.keyboards.inline import main_menu_keyboard, confirm_keyboard, ok_keyboard
 from loader import db
 from tgbot.keyboards.reply import share_phone_keyboard
-from tgbot.misc.help_funcs import show_main_menu, del_reg_messages
+from tgbot.misc.help_funcs import show_main_menu
 
 
 class RegistrationFSM(StatesGroup):
@@ -36,21 +36,22 @@ async def obtain_ok_button(callback: CallbackQuery, state: FSMContext):
     m2 = await callback.message.edit_text(text="Укажите ваше ФИО:")
 
     async with state.proxy() as data:
-        data["reg_messages_for_delete"] = [
-            m2.message_id,
-            callback.message.message_id,
-        ]
+        data["message_for_redact_id"] = m2.message_id
 
     await RegistrationFSM.waiting_for_fio.set()
 
 
 async def obtain_fio(message: Message, state: FSMContext):
     fio = message.text
-    m3 = await message.answer(text=f"{fio}, вы уверены?", reply_markup=confirm_keyboard)
 
     async with state.proxy() as data:
         data["fio"] = fio
-        data["reg_messages_for_delete"].extend([message.message_id, m3.message_id])
+
+    await message.bot.edit_message_text(text=f"{fio}, вы уверены?",
+                                        chat_id=message.from_user.id,
+                                        message_id=data["message_for_redact_id"],
+                                        reply_markup=confirm_keyboard)
+    await message.delete()
 
     await RegistrationFSM.waiting_for_fio_confirm.set()
 
@@ -59,23 +60,22 @@ async def obtain_fio_confirm(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
     if callback.data == "yes":
-        m4 = await callback.message.answer(
-            text="Укажите номер телефона:", reply_markup=share_phone_keyboard
-        )
-
+        m4 = await callback.message.answer(text="Укажите номер телефона:", reply_markup=share_phone_keyboard)
+        await callback.message.delete()
         async with state.proxy() as data:
-            data["reg_messages_for_delete"].extend([m4.message_id, callback.message.message_id])
-
+            data["message_for_redact_id"] = m4.message_id
         await RegistrationFSM.waiting_for_phone_number.set()
 
     else:
-        m5 = await callback.message.answer(text="Укажите ваше ФИО:")
+        m5 = await callback.message.edit_text(text="Укажите ваше ФИО:")
         async with state.proxy() as data:
-            data["reg_messages_for_delete"].extend([m5.message_id, callback.message.message_id])
+            data["message_for_redact_id"] = m5.message_id
         await RegistrationFSM.waiting_for_fio.set()
 
 
 async def obtain_phone_number(message: Message, state: FSMContext):
+    async with state.proxy() as data:
+        await message.bot.delete_message(chat_id=message.from_user.id, message_id=data["message_for_redact_id"])
     if message.contact:
         async with state.proxy() as data:
             data["phone_number"] = message.contact.phone_number
@@ -91,24 +91,29 @@ async def obtain_phone_number(message: Message, state: FSMContext):
                 text="Неверный формат номера телефона, попробуйте ещё раз:", reply_markup=share_phone_keyboard
             )
             async with state.proxy() as data:
-                data["reg_messages_for_delete"].extend([m6.message_id, message.message_id])
+                data["message_for_redact_id"] = m6.message_id
+            await message.delete()
             return
 
     m7 = await message.answer(
         text="Укажите вашу должность:", reply_markup=ReplyKeyboardRemove()
     )
     async with state.proxy() as data:
-        data["reg_messages_for_delete"].extend([m7.message_id, message.message_id])
+        data["message_for_redact_id"] = m7.message_id
+    await message.delete()
     await RegistrationFSM.waiting_for_position.set()
 
 
 async def obtain_position(message: Message, state: FSMContext):
     position = message.text
-    m8 = await message.answer(text="вы уверены?", reply_markup=confirm_keyboard)
 
     async with state.proxy() as data:
         data["position"] = position
-        data["reg_messages_for_delete"].extend([message.message_id, m8.message_id])
+
+    await message.bot.delete_message(chat_id=message.from_user.id, message_id=data["message_for_redact_id"])
+
+    await message.answer(text=f"{position}, вы уверены?", reply_markup=confirm_keyboard)
+    await message.delete()
 
     await RegistrationFSM.waiting_for_position_confirm.set()
 
@@ -128,10 +133,11 @@ async def obtain_position_confirm(callback: CallbackQuery, state: FSMContext):
                 telegram_id=str(callback.from_user.id),
             )
 
-        m10 = await callback.message.answer(text="Вы успешно прошли регистрацию!")
-        await callback.message.answer(
+        await callback.message.edit_text(
             text=f"""
-             ФИО: {data.get("fio")}
+            Вы успешно прошли регистрацию!
+            
+ФИО: {data.get("fio")}
 Номер телефона: {data.get("phone_number")} 
 Должность: {data.get("position")}
 
@@ -139,15 +145,13 @@ async def obtain_position_confirm(callback: CallbackQuery, state: FSMContext):
             """,
             reply_markup=main_menu_keyboard,
         )
-        async with state.proxy() as data:
-            data["reg_messages_for_delete"].extend([m10.message_id, callback.message.message_id])
-        await del_reg_messages(data["reg_messages_for_delete"], callback)
+
         await state.finish()
 
     else:
-        m9 = await callback.message.answer(text="Укажите вашу должность:")
+        m9 = await callback.message.edit_text(text="Укажите вашу должность:")
         async with state.proxy() as data:
-            data["reg_messages_for_delete"].extend([m9.message_id, callback.message.message_id])
+            data["message_for_redact_id"] = m9.message_id
         await RegistrationFSM.waiting_for_position.set()
 
 
